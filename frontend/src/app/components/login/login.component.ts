@@ -10,22 +10,42 @@ import { Router } from '@angular/router';
 export class LoginComponent {
   email: string = '';
   password: string = '';
+  error: string = '';
+  isLoading: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   onSubmit() {
+    if (!this.email || !this.password) {
+      this.error = 'Please fill in all fields';
+      return;
+    }
+
+    this.isLoading = true;
+    this.error = '';
+
     this.authService
       .login({ email: this.email, password: this.password })
-      .subscribe(
-        (response) => {
-          // Store the token in local storage
+      .subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          // Store token
           localStorage.setItem('token', response.token);
-          // Redirect to the dashboard after successful login
-          this.router.navigate(['/dashboard']); // Adjust the path based on your routing configuration
+
+          // Store user info
+          localStorage.setItem('user', JSON.stringify(response.user));
+
+          // Redirect based on role
+          if (response.user.role === 'owner') {
+            this.router.navigate(['/owner/dashboard']);
+          } else {
+            this.router.navigate(['/user/dashboard']);
+          }
         },
-        (error) => {
-          console.error('Login failed', error);
-        }
-      );
+        error: (err) => {
+          this.isLoading = false;
+          this.error = err.error?.msg || 'An error occurred during login';
+        },
+      });
   }
 }

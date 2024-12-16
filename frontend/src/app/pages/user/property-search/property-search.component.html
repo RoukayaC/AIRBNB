@@ -1,0 +1,97 @@
+<div class="min-h-screen bg-gray-100">
+  <!-- Search Header -->
+
+  <div class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex flex-col md:flex-row gap-4">
+        <!-- Search Input -->
+
+        <div class="flex-grow">
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            placeholder="Search for places..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          />
+        </div>
+
+        <!-- Filters -->
+
+        <div class="flex gap-4">
+          <select
+            [(ngModel)]="selectedLocation"
+            class="px-4 py-2 border border-gray-300 rounded-lg"
+          >
+            <option value="">Any Location</option>
+            <option value="miami">Miami</option>
+            <option value="new-york">New York</option>
+          </select>
+
+          <div class="flex items-center gap-2">
+            <span class="text-gray-600">Max Price: ${{ priceRange }}</span>
+            <input
+              type="range"
+              [(ngModel)]="priceRange"
+              min="0"
+              max="2000"
+              class="w-32"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Property Grid -->
+
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Property Card -->
+
+      <div
+        *ngFor="let property of properties"
+        class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+      >
+        <img
+          [src]="property.imageUrl"
+          [alt]="property.title"
+          class="w-full h-48 object-cover"
+        />
+
+        <div class="p-4">
+          <div class="flex justify-between items-start">
+            <h3 class="text-lg font-semibold">{{ property.title }}</h3>
+            <span class="text-red-500 font-semibold"
+              >${{ property.price }}/night</span
+            >
+          </div>
+
+          <p class="text-gray-600 mt-2">{{ property.description }}</p>
+
+          <div class="flex items-center mt-4 text-sm text-gray-500">
+            <span class="flex items-center">
+              <i class="fas fa-bed mr-1"></i>
+              {{ property.beds }} beds
+            </span>
+            <span class="mx-2">•</span>
+            <span class="flex items-center">
+              <i class="fas fa-bath mr-1"></i>
+              {{ property.baths }} baths
+            </span>
+            <span class="mx-2">•</span>
+            <span class="flex items-center">
+              <i class="fas fa-star text-yellow-400 mr-1"></i>
+              {{ property.rating }}
+            </span>
+          </div>
+
+          <button
+            class="w-full mt-4 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-colors"
+          >
+            Book Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
