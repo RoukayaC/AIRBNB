@@ -1,76 +1,60 @@
 <div class="min-h-screen bg-gray-100 py-8">
   <div class="max-w-7xl mx-auto px-4">
     <div class="bg-white rounded-lg shadow-md">
-      *<!-- Header -->*
-
-      <div class="p-6 border-b border-gray-200">
-        <div class="flex justify-between items-center">
-          <h2 class="text-2xl font-semibold text-gray-800">My Properties</h2>
-          <button
-            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
-          >
-            Add New Property
-          </button>
-        </div>
+      <!-- Header -->
+      <div
+        class="p-6 border-b border-gray-200 flex justify-between items-center"
+      >
+        <h2 class="text-2xl font-semibold text-gray-800">My Properties</h2>
+        <button
+          class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+          (click)="openModal()"
+        >
+          Add New Property
+        </button>
       </div>
 
-      *<!-- Property List -->*
-
+      <!-- Property List -->
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-gray-50">
             <tr>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
+                Image
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
                 Property
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
                 Location
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
                 Price/Night
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
                 Status
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
                 Bookings
               </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
-                Revenue
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr *ngFor="let property of properties">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm font-medium text-gray-900">
-                  {{ property.title }}
-                </div>
+              <td class="px-6 py-4">
+                <img
+                  [src]="property.imageUrl"
+                  alt="Property Image"
+                  class="h-12 w-12 rounded-full object-cover"
+                />
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-500">{{ property.location }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="text-sm text-gray-900">${{ property.price }}</div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-6 py-4">{{ property.title }}</td>
+              <td class="px-6 py-4">{{ property.location }}</td>
+              <td class="px-6 py-4">${{ property.price }}</td>
+              <td class="px-6 py-4">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
                   [ngClass]="
@@ -82,30 +66,24 @@
                   {{ property.status }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ property.bookings }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                ${{ property.revenue }}
-              </td>
-              <td
-                class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-              >
+              <td class="px-6 py-4">{{ property.bookings }}</td>
+              <td class="px-6 py-4">
                 <button
-                  (click)="editProperty(property.id)"
-                  class="text-indigo-600 hover:text-indigo-900 mr-4"
+                  class="text-blue-600 hover:text-blue-800 mr-2"
+                  (click)="openModal(property)"
                 >
                   Edit
                 </button>
                 <button
+                  class="text-yellow-600 hover:text-yellow-800 mr-2"
                   (click)="togglePropertyStatus(property)"
-                  class="text-yellow-600 hover:text-yellow-900 mr-4"
                 >
                   Toggle Status
                 </button>
+
                 <button
-                  (click)="deleteProperty(property.id)"
-                  class="text-red-600 hover:text-red-900"
+                  class="text-red-600 hover:text-red-800"
+                  (click)="deleteProperty(property)"
                 >
                   Delete
                 </button>
@@ -113,6 +91,67 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div
+    *ngIf="showModal"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+  >
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <h3 class="text-lg font-semibold mb-4">
+        {{ editMode ? "Edit Property" : "Add New Property" }}
+      </h3>
+      <div class="mb-4">
+        <label class="block text-gray-700">Title</label>
+        <input
+          type="text"
+          class="w-full border rounded p-2"
+          [(ngModel)]="newProperty['title']"
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Price</label>
+        <input
+          type="number"
+          class="w-full border rounded p-2"
+          [(ngModel)]="newProperty.price"
+        />
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700">Location</label>
+        <input
+          type="text"
+          class="w-full border rounded p-2"
+          [(ngModel)]="newProperty.location"
+        />
+      </div>
+      <!-- Image Upload -->
+      <div class="mb-4">
+        <label class="block text-gray-700">Property Image</label>
+        <input type="file" (change)="handleFileInput($event)" />
+        <img
+          *ngIf="newProperty.imageUrl"
+          [src]="newProperty.imageUrl"
+          alt="Preview"
+          class="mt-2 h-20 w-20 rounded object-cover"
+        />
+      </div>
+      <div class="flex justify-end">
+        <button
+          class="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+          (click)="closeModal()"
+        >
+          Cancel
+        </button>
+        <button
+          class="bg-blue-500 text-white px-4 py-2 rounded"
+          (click)="saveProperty()"
+        >
+          Save
+        </button>
       </div>
     </div>
   </div>

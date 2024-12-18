@@ -1,38 +1,30 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const config = require("config");
 const cors = require("cors");
-const users = require("./routes/api/users");
-const app = express();
+const config = require("config");
 
-// Middleware
+const users = require("./routes/api/users");
+const properties = require("./routes/api/property");
+const bookings = require("./routes/api/booking");
+
+const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB
-const connectDB = async () => {
-  try {
-    const mongo_url = config.get("mongo_url");
-    mongoose.set("strictQuery", true);
-    await mongoose.connect(mongo_url);
-    console.log("MongoDB connected...");
-  } catch (err) {
-    console.error("MongoDB connection error:", err);
-    process.exit(1); // Exit process with failure
-  }
-};
+const PORT = process.env.PORT || 3000;
 
-// Call the function to connect to the database
-connectDB();
+// MongoDB Connection
+mongoose
+  .connect(config.get("mongo_url"))
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB connection error:", err));
 
-// Use the users routes for authentication
+// Routes
 app.use("/api/user", users);
+app.use("/api/property", properties);
+app.use("/api/booking", bookings);
 
-// Set the port and host
-const port = process.env.PORT || 3000;
-const host = "0.0.0.0";
-
-// Start the server
-app.listen(port, host, () => {
-  console.log(`Server running on http://${host}:${port}`);
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

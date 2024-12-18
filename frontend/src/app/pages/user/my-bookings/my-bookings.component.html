@@ -1,1 +1,31 @@
-<p>my-bookings works!</p>
+<div class="min-h-screen bg-gray-100 py-8">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="text-2xl font-bold mb-6">My Bookings</h2>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <div class="divide-y divide-gray-200">
+        <div *ngFor="let booking of bookings" class="p-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-lg font-semibold">{{ booking.propertyTitle }}</h3>
+              <p class="text-gray-500">
+                Guest: {{ booking.guestName }} • Check-in: {{
+                booking.checkIn | date }} • Check-out: {{ booking.checkOut | date }}
+              </p>
+            </div>
+            <span
+              class="px-3 py-1 text-sm rounded-full"
+              [ngClass]="{
+                'bg-yellow-100 text-yellow-700': booking.status === 'pending',
+                'bg-green-100 text-green-700': booking.status === 'approved',
+                'bg-red-100 text-red-700': booking.status === 'rejected'
+              }"
+            >
+              {{ booking.status | titlecase }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

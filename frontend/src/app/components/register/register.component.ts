@@ -64,7 +64,7 @@ export class RegisterComponent {
         username: this.username,
         email: this.email,
         password: this.password,
-        //role: this.role,
+        // role: this.role,
       })
       .subscribe({
         next: (response) => {

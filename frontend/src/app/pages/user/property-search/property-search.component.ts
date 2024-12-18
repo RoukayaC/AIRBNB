@@ -23,6 +23,10 @@ export class PropertySearchComponent implements OnInit {
   priceRange: number = 1000;
   selectedLocation: string = '';
 
+  // State for booking modal
+  showBookingModal: boolean = false;
+  selectedProperty: Property | null = null;
+
   constructor() {}
 
   ngOnInit() {
@@ -38,14 +42,32 @@ export class PropertySearchComponent implements OnInit {
         baths: 2,
         rating: 4.8,
       },
-    ];
+      {
+        id: 2,
+        title: 'Cozy Mountain Cabin',
+        description: 'Quiet retreat in the mountains',
+        price: 150,
+        location: 'Denver',
+        imageUrl: 'assets/cabin.jpg',
+        beds: 2,
+        baths: 1,
+        rating: 4.7,
+      },    ];
   }
 
-  searchProperties() {
-    // Implement search logic
+  openBookingModal(property: Property) {
+    this.selectedProperty = property;
+    this.showBookingModal = true;
   }
 
-  filterByPrice() {
-    // Implement price filter
+  closeBookingModal() {
+    this.showBookingModal = false;
+    this.selectedProperty = null;
+  }
+
+  confirmBooking() {
+    // Handle booking confirmation (send to backend or update booking state)
+    alert('Booking confirmed for ' + this.selectedProperty?.title);
+    this.closeBookingModal();
   }
 }
