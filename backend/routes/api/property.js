@@ -4,7 +4,6 @@ const Property = require("../../models/property");
 const auth = require("../../middleware/auth");
 
 // Create a new property
-// routes/api/property.js
 router.post("/", auth, async (req, res) => {
   try {
     const { title, price, location, imageUrl } = req.body;
@@ -34,7 +33,7 @@ router.get("/", auth, async (req, res) => {
     res.status(500).json({ status: "error", msg: "Internal server error" });
   }
 });
-// routes/api/property.js
+
 router.get("/all", async (req, res) => {
   try {
     const properties = await Property.find({ status: "active" });

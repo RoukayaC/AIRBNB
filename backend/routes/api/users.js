@@ -25,9 +25,7 @@ router.post("/register", async (req, res) => {
     const newUser = new User({ username, email, password, role });
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(newUser.password, salt);
-
     const savedUser = await newUser.save();
-
     const token = jwt.sign({ id: savedUser.id }, config.get("jwtSecret"), {
       expiresIn: config.get("tokenExpire"),
     });

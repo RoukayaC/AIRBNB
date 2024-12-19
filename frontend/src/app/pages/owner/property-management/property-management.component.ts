@@ -1,5 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { Property, PropertyService, PropertyData } from '../../../services/property.service';
+import {
+  Property,
+  PropertyService,
+  PropertyData,
+} from '../../../services/property.service';
 
 @Component({
   selector: 'app-property-management',
@@ -39,7 +43,7 @@ export class PropertyManagementComponent implements OnInit {
     );
   }
 
-  // Open modal for add/edit
+  // add/edit
   openModal(property?: Property) {
     this.editMode = !!property;
     this.selectedProperty = property || null;
@@ -70,7 +74,7 @@ export class PropertyManagementComponent implements OnInit {
     this.editMode = false;
   }
 
-  // Handle file input for image upload (if needed)
+  // Handle file input for image upload
   handleFileInput(event: Event) {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
@@ -95,7 +99,8 @@ export class PropertyManagementComponent implements OnInit {
 
     if (this.editMode && this.selectedProperty && this.selectedProperty._id) {
       // Update property
-      this.propertyService.updateProperty(this.selectedProperty._id, newPropertyData)
+      this.propertyService
+        .updateProperty(this.selectedProperty._id, newPropertyData)
         .subscribe(
           (updatedProperty) => {
             console.log('Property updated:', updatedProperty);
