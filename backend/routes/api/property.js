@@ -4,10 +4,10 @@ const Property = require("../../models/property");
 const auth = require("../../middleware/auth");
 
 // Create a new property
+// routes/api/property.js
 router.post("/", auth, async (req, res) => {
   try {
     const { title, price, location, imageUrl } = req.body;
-
     const property = new Property({
       owner: req.user.id,
       title,
@@ -20,11 +20,7 @@ router.post("/", auth, async (req, res) => {
     res.status(201).json({ status: "ok", property });
   } catch (err) {
     console.error("Error creating property:", err);
-    res.status(500).json({
-      status: "error",
-      msg: "Internal server error",
-      error: err.message,
-    });
+    res.status(500).json({ status: "error", msg: "Internal server error" });
   }
 });
 
@@ -32,6 +28,16 @@ router.post("/", auth, async (req, res) => {
 router.get("/", auth, async (req, res) => {
   try {
     const properties = await Property.find({ owner: req.user.id });
+    res.status(200).json({ status: "ok", properties });
+  } catch (err) {
+    console.error("Error fetching properties:", err);
+    res.status(500).json({ status: "error", msg: "Internal server error" });
+  }
+});
+// routes/api/property.js
+router.get("/all", async (req, res) => {
+  try {
+    const properties = await Property.find({ status: "active" });
     res.status(200).json({ status: "ok", properties });
   } catch (err) {
     console.error("Error fetching properties:", err);

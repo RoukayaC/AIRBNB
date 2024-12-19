@@ -1,64 +1,59 @@
+// booking-requests.component.ts
 import { Component, OnInit } from '@angular/core';
-
-interface BookingRequest {
-  id: number;
-  propertyTitle: string;
-  guestName: string;
-  checkIn: Date;
-  checkOut: Date;
-  status: 'pending' | 'approved' | 'rejected';
-  totalPrice: number;
-}
+import { BookingService, Booking } from '../../../services/booking.service';
 
 @Component({
   selector: 'app-booking-requests',
-  templateUrl: './booking-requests.component.html',
-  styleUrls: ['./booking-requests.component.css'],
+  templateUrl: './booking-requests.component.html'
 })
 export class BookingRequestsComponent implements OnInit {
-  bookingRequests: BookingRequest[] = [];
+  bookingRequests: any[] = [];
 
-  constructor() {}
+  constructor(private bookingService: BookingService) {}
 
   ngOnInit() {
-    // Simulated data
-    this.bookingRequests = [
-      {
-        id: 1,
-        propertyTitle: 'EL Mouradi',
-        guestName: 'Roukaya Chelly',
-        checkIn: new Date('2024-01-15'),
-        checkOut: new Date('2024-01-20'),
-        status: 'pending',
-        totalPrice: 150,
+    // Fetch owner bookings from the API:
+    this.bookingService.getOwnerBookings().subscribe({
+      next: (bookings: Booking[]) => {
+        this.bookingRequests = bookings.map(b => ({
+          id: b._id,
+          propertyTitle: b.property.title,
+          guestName: b.guest.username,
+          checkIn: new Date(b.checkIn),
+          checkOut: new Date(b.checkOut),
+          status: b.status,
+          totalPrice: b.totalPrice
+        }));
       },
-      {
-        id: 2,
-        propertyTitle: 'La badira',
-        guestName: 'Foulen Foulani',
-        checkIn: new Date('2024-02-10'),
-        checkOut: new Date('2024-02-15'),
-        status: 'pending',
-        totalPrice: 200,
-      },
-    ];
+      error: (err) => console.error('Error fetching owner bookings:', err)
+    });
   }
 
-  approveRequest(id: number) {
+  approveRequest(id: string) {
     if (confirm('Are you sure you want to approve this request?')) {
-      this.updateStatus(id, 'approved');
+      this.bookingService.updateBookingStatus(id, 'approved').subscribe(
+        updatedBooking => {
+          const index = this.bookingRequests.findIndex(br => br.id === id);
+          if (index > -1) {
+            this.bookingRequests[index].status = 'approved';
+          }
+        },
+        error => console.error('Error approving request:', error)
+      );
     }
   }
 
-  rejectRequest(id: number) {
+  rejectRequest(id: string) {
     if (confirm('Are you sure you want to reject this request?')) {
-      this.updateStatus(id, 'rejected');
+      this.bookingService.updateBookingStatus(id, 'rejected').subscribe(
+        updatedBooking => {
+          const index = this.bookingRequests.findIndex(br => br.id === id);
+          if (index > -1) {
+            this.bookingRequests[index].status = 'rejected';
+          }
+        },
+        error => console.error('Error rejecting request:', error)
+      );
     }
-  }
-
-  private updateStatus(id: number, status: 'approved' | 'rejected') {
-    this.bookingRequests = this.bookingRequests.map((request) =>
-      request.id === id ? { ...request, status } : request
-    );
   }
 }

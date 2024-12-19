@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { Property } from '../../../services/property.service';
-import { PropertyService } from '../../../services/property.service';
+import { Property, PropertyService, PropertyData } from '../../../services/property.service';
+
 @Component({
   selector: 'app-property-management',
   templateUrl: './property-management.component.html',
@@ -70,7 +70,7 @@ export class PropertyManagementComponent implements OnInit {
     this.editMode = false;
   }
 
-  // Handle file input for image upload
+  // Handle file input for image upload (if needed)
   handleFileInput(event: Event) {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
@@ -86,40 +86,33 @@ export class PropertyManagementComponent implements OnInit {
 
   // Save new or edited property
   saveProperty() {
-    const formData = new FormData();
-    formData.append('title', this.newProperty.title || '');
-    formData.append('price', String(this.newProperty.price || 0));
-    formData.append('location', this.newProperty.location || '');
-    if (
-      this.newProperty.imageUrl &&
-      typeof this.newProperty.imageUrl === 'string'
-    ) {
-      formData.append('imageUrl', this.newProperty.imageUrl);
-    }
+    const newPropertyData: PropertyData = {
+      title: this.newProperty.title,
+      price: this.newProperty.price,
+      location: this.newProperty.location,
+      imageUrl: this.newProperty.imageUrl,
+    };
 
     if (this.editMode && this.selectedProperty && this.selectedProperty._id) {
       // Update property
-      this.propertyService
-        .updateProperty(this.selectedProperty._id, formData)
+      this.propertyService.updateProperty(this.selectedProperty._id, newPropertyData)
         .subscribe(
-          (updatedProperty: Property) => {
+          (updatedProperty) => {
+            console.log('Property updated:', updatedProperty);
             this.closeModal();
             this.fetchPropertiesFromServer();
           },
-          (error: any) => {
-            console.error('Error updating property:', error);
-          }
+          (error) => console.error('Error updating property:', error)
         );
     } else {
       // Create property
-      this.propertyService.createProperty(formData).subscribe(
-        (newProp: Property) => {
+      this.propertyService.createProperty(newPropertyData).subscribe(
+        (response) => {
+          console.log('Property created:', response);
           this.closeModal();
           this.fetchPropertiesFromServer();
         },
-        (error: any) => {
-          console.error('Error creating property:', error);
-        }
+        (error) => console.error('Error creating property:', error)
       );
     }
   }

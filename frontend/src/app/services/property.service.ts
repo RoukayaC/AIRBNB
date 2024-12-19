@@ -15,6 +15,14 @@ export interface Property {
   imageUrl?: string;
 }
 
+// Define a separate interface for property creation/update data
+export interface PropertyData {
+  title: string | undefined;
+  price: number | undefined;
+  location: string | undefined;
+  imageUrl?: string | undefined;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -29,17 +37,19 @@ export class PropertyService {
       .pipe(map((response) => response.properties));
   }
 
-  createProperty(formData: FormData): Observable<Property> {
+  // Now accepts a PropertyData object instead of FormData
+  createProperty(propertyData: PropertyData): Observable<Property> {
     return this.http
-      .post<{ status: string; property: Property }>(this.API_URL, formData)
+      .post<{ status: string; property: Property }>(this.API_URL, propertyData)
       .pipe(map((response) => response.property));
   }
 
-  updateProperty(id: string, formData: FormData): Observable<Property> {
+  // Same for updateProperty: accept PropertyData instead of FormData
+  updateProperty(id: string, propertyData: PropertyData): Observable<Property> {
     return this.http
       .put<{ status: string; property: Property }>(
         `${this.API_URL}/${id}`,
-        formData
+        propertyData
       )
       .pipe(map((response) => response.property));
   }
