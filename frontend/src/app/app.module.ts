@@ -13,6 +13,7 @@ import { PropertySearchComponent } from './pages/user/property-search/property-s
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { UserDashboardComponent } from './pages/user/user-dashboard/user-dashboard.component';
 import { OwnerDashboardComponent } from './pages/owner/owner-dashboard/owner-dashboard.component';
+import { AuthInterceptor } from './interceptors/auth-interceptor.service';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,13 @@ import { OwnerDashboardComponent } from './pages/owner/owner-dashboard/owner-das
     FormsModule,
     ReactiveFormsModule,
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

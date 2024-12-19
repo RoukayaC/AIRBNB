@@ -12,7 +12,7 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:4200", // Allow requests from Angular frontend
+    origin: "http://localhost:4200",
     credentials: true,
   })
 );

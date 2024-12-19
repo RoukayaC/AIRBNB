@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -26,12 +26,7 @@ export class PropertyService {
   getProperties(): Observable<Property[]> {
     return this.http
       .get<{ status: string; properties: Property[] }>(this.API_URL)
-      .pipe(
-        map((response) => {
-          console.log('API Response:', response);
-          return response.properties;
-        })
-      );
+      .pipe(map((response) => response.properties));
   }
 
   createProperty(formData: FormData): Observable<Property> {

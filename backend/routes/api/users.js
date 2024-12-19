@@ -8,7 +8,6 @@ const User = require("../../models/user");
 router.post("/register", async (req, res) => {
   const { username, email, password, role } = req.body;
 
-  // Validate input
   if (!username || !email || !password) {
     return res
       .status(400)
@@ -16,7 +15,6 @@ router.post("/register", async (req, res) => {
   }
 
   try {
-    // Check if email already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
@@ -24,22 +22,16 @@ router.post("/register", async (req, res) => {
         .json({ status: "not ok", msg: "Email already exists" });
     }
 
-    // Create a new user instance
     const newUser = new User({ username, email, password, role });
-
-    // Generate salt and hash password
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(newUser.password, salt);
 
-    // Save the user to the database
     const savedUser = await newUser.save();
 
-    // Generate JWT token
     const token = jwt.sign({ id: savedUser.id }, config.get("jwtSecret"), {
       expiresIn: config.get("tokenExpire"),
     });
 
-    // Send response with token and user details
     res.status(200).json({
       status: "ok",
       msg: "Successfully registered",
@@ -47,6 +39,7 @@ router.post("/register", async (req, res) => {
       user: savedUser,
     });
   } catch (err) {
+    console.error("Error during registration:", err);
     return res
       .status(500)
       .json({ status: "error", msg: "Internal server error" });
@@ -57,7 +50,6 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  // Validate input
   if (!email || !password) {
     return res
       .status(400)
@@ -65,7 +57,6 @@ router.post("/login", async (req, res) => {
   }
 
   try {
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       return res
@@ -73,7 +64,6 @@ router.post("/login", async (req, res) => {
         .json({ status: "not ok", msg: "Invalid email or password" });
     }
 
-    // Compare the provided password with the hashed password in the database
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res
@@ -81,12 +71,10 @@ router.post("/login", async (req, res) => {
         .json({ status: "not ok", msg: "Invalid email or password" });
     }
 
-    // Generate JWT token if credentials are valid
     const token = jwt.sign({ id: user.id }, config.get("jwtSecret"), {
       expiresIn: config.get("tokenExpire"),
     });
 
-    // Send response with token and user details
     res.status(200).json({
       status: "ok",
       msg: "Successfully logged in",
@@ -99,6 +87,7 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (err) {
+    console.error("Error during login:", err);
     return res
       .status(500)
       .json({ status: "error", msg: "Internal server error" });

@@ -1,16 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-
-interface Property {
-  id: number;
-  title: string;
-  price: number;
-  location: string;
-  status: 'active' | 'inactive';
-  bookings: number;
-  revenue: number;
-  imageUrl?: string;
-}
-
+import { Property } from '../../../services/property.service';
+import { PropertyService } from '../../../services/property.service';
 @Component({
   selector: 'app-property-management',
   templateUrl: './property-management.component.html',
@@ -32,22 +22,21 @@ export class PropertyManagementComponent implements OnInit {
     imageUrl: '',
   };
 
-  constructor() {}
+  constructor(private propertyService: PropertyService) {}
 
   ngOnInit() {
-    // You can fetch data from your backend here
-    this.properties = [
-      {
-        id: 1,
-        title: 'Luxury Beach House',
-        price: 250,
-        location: 'Miami',
-        status: 'active',
-        bookings: 12,
-        revenue: 3000,
-        imageUrl: 'assets/beach-house.jpg', // Example image
+    this.fetchPropertiesFromServer();
+  }
+
+  fetchPropertiesFromServer() {
+    this.propertyService.getProperties().subscribe(
+      (properties: Property[]) => {
+        this.properties = properties;
       },
-    ];
+      (error: any) => {
+        console.error('Error fetching properties:', error);
+      }
+    );
   }
 
   // Open modal for add/edit
@@ -55,8 +44,21 @@ export class PropertyManagementComponent implements OnInit {
     this.editMode = !!property;
     this.selectedProperty = property || null;
     this.newProperty = property
-      ? { ...property }
-      : { title: '', price: 0, location: '', status: 'active', imageUrl: '' };
+      ? {
+          _id: property._id,
+          title: property.title,
+          price: property.price,
+          location: property.location,
+          status: property.status,
+          imageUrl: property.imageUrl,
+        }
+      : {
+          title: '',
+          price: 0,
+          location: '',
+          status: 'active',
+          imageUrl: '',
+        };
     this.showModal = true;
   }
 
@@ -64,6 +66,8 @@ export class PropertyManagementComponent implements OnInit {
   closeModal() {
     this.showModal = false;
     this.newProperty = {};
+    this.selectedProperty = null;
+    this.editMode = false;
   }
 
   // Handle file input for image upload
@@ -82,34 +86,70 @@ export class PropertyManagementComponent implements OnInit {
 
   // Save new or edited property
   saveProperty() {
-    if (this.editMode && this.selectedProperty) {
-      const index = this.properties.findIndex(
-        (p) => p.id === this.selectedProperty!.id
-      );
-      if (index !== -1) {
-        this.properties[index] = { ...this.newProperty } as Property;
-      }
-    } else {
-      const newId =
-        this.properties.length > 0
-          ? Math.max(...this.properties.map((p) => p.id)) + 1
-          : 1;
-      this.properties.push({ id: newId, ...this.newProperty } as Property);
+    const formData = new FormData();
+    formData.append('title', this.newProperty.title || '');
+    formData.append('price', String(this.newProperty.price || 0));
+    formData.append('location', this.newProperty.location || '');
+    if (
+      this.newProperty.imageUrl &&
+      typeof this.newProperty.imageUrl === 'string'
+    ) {
+      formData.append('imageUrl', this.newProperty.imageUrl);
     }
-    this.closeModal();
+
+    if (this.editMode && this.selectedProperty && this.selectedProperty._id) {
+      // Update property
+      this.propertyService
+        .updateProperty(this.selectedProperty._id, formData)
+        .subscribe(
+          (updatedProperty: Property) => {
+            this.closeModal();
+            this.fetchPropertiesFromServer();
+          },
+          (error: any) => {
+            console.error('Error updating property:', error);
+          }
+        );
+    } else {
+      // Create property
+      this.propertyService.createProperty(formData).subscribe(
+        (newProp: Property) => {
+          this.closeModal();
+          this.fetchPropertiesFromServer();
+        },
+        (error: any) => {
+          console.error('Error creating property:', error);
+        }
+      );
+    }
   }
 
   // Toggle property status (active/inactive)
   togglePropertyStatus(property: Property) {
-    property.status = property.status === 'active' ? 'inactive' : 'active';
+    this.propertyService.togglePropertyStatus(property._id).subscribe(
+      (updatedProperty: Property) => {
+        this.fetchPropertiesFromServer();
+      },
+      (error: any) => {
+        console.error('Error toggling property status:', error);
+      }
+    );
   }
 
+  // Delete property
   deleteProperty(property: Property) {
     const confirmed = confirm(
       `Are you sure you want to delete the property "${property.title}"?`
     );
     if (confirmed) {
-      this.properties = this.properties.filter((p) => p.id !== property.id);
+      this.propertyService.deleteProperty(property._id).subscribe(
+        (resp: any) => {
+          this.fetchPropertiesFromServer();
+        },
+        (error: any) => {
+          console.error('Error deleting property:', error);
+        }
+      );
     }
   }
 }
