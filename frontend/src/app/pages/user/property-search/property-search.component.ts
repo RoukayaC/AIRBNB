@@ -1,73 +1,136 @@
 import { Component, OnInit } from '@angular/core';
-
-interface Property {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  location: string;
-  imageUrl: string;
-  beds: number;
-  baths: number;
-  rating: number;
-}
+import { PropertyService, Property } from '../../../services/property.service';
+import { BookingService } from '../../../services/booking.service';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-property-search',
   templateUrl: './property-search.component.html',
-  styleUrls: ['./property-search.component.css'],
 })
 export class PropertySearchComponent implements OnInit {
   properties: Property[] = [];
-  searchTerm: string = '';
-  priceRange: number = 1000;
-  selectedLocation: string = '';
-
-  // State for booking modal
-  showBookingModal: boolean = false;
+  filteredProperties: Property[] = [];
+  isLoading = false;
+  errorMessage = '';
+  searchForm: FormGroup;
+  bookingForm: FormGroup;
+  showBookingModal = false;
   selectedProperty: Property | null = null;
 
-  constructor() {}
+  constructor(
+    private propertyService: PropertyService,
+    private bookingService: BookingService,
+    private fb: FormBuilder
+  ) {
+    this.searchForm = this.fb.group({
+      searchTerm: [''],
+      minPrice: [''],
+      maxPrice: [''],
+      location: [''],
+    });
+
+    this.bookingForm = this.fb.group({
+      checkIn: ['', Validators.required],
+      checkOut: ['', Validators.required],
+    });
+  }
 
   ngOnInit() {
-    this.properties = [
-      {
-        id: 1,
-        title: 'Luxury Beach House',
-        description: 'Beautiful beachfront property with amazing views',
-        price: 250,
-        location: 'Miami',
-        imageUrl: 'assets/house1.jpg',
-        beds: 3,
-        baths: 2,
-        rating: 4.8,
+    this.loadProperties();
+    this.searchForm.valueChanges.subscribe(() => {
+      this.filterProperties();
+    });
+  }
+
+  loadProperties() {
+    this.isLoading = true;
+    this.propertyService.getProperties().subscribe({
+      next: (properties) => {
+        console.log('Properties:', properties);
+        this.properties = properties.filter((p) => p.status === 'active');
+        this.filteredProperties = [...this.properties];
+        this.isLoading = false;
       },
-      {
-        id: 2,
-        title: 'Cozy Mountain Cabin',
-        description: 'Quiet retreat in the mountains',
-        price: 150,
-        location: 'Denver',
-        imageUrl: 'assets/cabin.jpg',
-        beds: 2,
-        baths: 1,
-        rating: 4.7,
-      },    ];
+      error: (error) => {
+        this.errorMessage = 'Failed to load properties';
+        this.isLoading = false;
+        console.error('Error fetching properties:', error);      },
+    });
+  }
+
+  filterProperties() {
+    const { searchTerm, minPrice, maxPrice, location } = this.searchForm.value;
+
+    this.filteredProperties = this.properties.filter((property) => {
+      let matches = true;
+
+      if (searchTerm) {
+        matches =
+          matches &&
+          property.title.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+
+      if (minPrice) {
+        matches = matches && property.price >= minPrice;
+      }
+
+      if (maxPrice) {
+        matches = matches && property.price <= maxPrice;
+      }
+
+      if (location) {
+        matches =
+          matches &&
+          property.location.toLowerCase().includes(location.toLowerCase());
+      }
+
+      return matches;
+    });
   }
 
   openBookingModal(property: Property) {
     this.selectedProperty = property;
     this.showBookingModal = true;
+    this.bookingForm.reset();
   }
 
   closeBookingModal() {
     this.showBookingModal = false;
     this.selectedProperty = null;
+    this.bookingForm.reset();
   }
 
-  confirmBooking() {
-    // Handle booking confirmation (send to backend or update booking state)
-    alert('Booking confirmed for ' + this.selectedProperty?.title);
-    this.closeBookingModal();
+  calculateTotalPrice(): number {
+    if (!this.selectedProperty || !this.bookingForm.valid) return 0;
+
+    const checkIn = new Date(this.bookingForm.value.checkIn);
+    const checkOut = new Date(this.bookingForm.value.checkOut);
+    const days = Math.ceil(
+      (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
+    return days * this.selectedProperty.price;
+  }
+
+  submitBooking() {
+    if (!this.selectedProperty || !this.bookingForm.valid) return;
+
+    const bookingData = {
+      propertyId: this.selectedProperty._id,
+      checkIn: this.bookingForm.value.checkIn,
+      checkOut: this.bookingForm.value.checkOut,
+      totalPrice: this.calculateTotalPrice(),
+    };
+
+    this.bookingService.createBooking(bookingData).subscribe({
+      next: () => {
+        alert('Booking request submitted successfully!');
+        this.closeBookingModal();
+      },
+      error: (error) => {
+        this.errorMessage = 'Failed to submit booking request';
+        console.error('Error:', error);
+      },
+    });
   }
 }

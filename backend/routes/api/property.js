@@ -19,7 +19,12 @@ router.post("/", auth, async (req, res) => {
     await property.save();
     res.status(201).json({ status: "ok", property });
   } catch (err) {
-    res.status(500).json({ status: "error", msg: "Internal server error" });
+    console.error("Error creating property:", err);
+    res.status(500).json({
+      status: "error",
+      msg: "Internal server error",
+      error: err.message,
+    });
   }
 });
 

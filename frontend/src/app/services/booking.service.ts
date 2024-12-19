@@ -1,20 +1,65 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+export interface Booking {
+  _id: string;
+  property: {
+    _id: string;
+    title: string;
+    imageUrl?: string;
+  };
+  guest: {
+    _id: string;
+    username: string;
+  };
+  checkIn: Date;
+  checkOut: Date;
+  status: 'pending' | 'approved' | 'rejected';
+  totalPrice: number;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class BookingService {
-  private apiUrl = 'http://localhost:3000/api/booking'; // Replace with your backend URL
+  private readonly API_URL = 'http://localhost:3000/api/booking';
 
   constructor(private http: HttpClient) {}
 
-  getBookings(): Observable<any> {
-    return this.http.get(this.apiUrl);
+  createBooking(bookingData: {
+    propertyId: string;
+    checkIn: Date;
+    checkOut: Date;
+    totalPrice: number;
+  }): Observable<Booking> {
+    return this.http
+      .post<{ status: string; booking: Booking }>(this.API_URL, bookingData)
+      .pipe(map((response) => response.booking));
   }
 
-  createBooking(bookingData: any): Observable<any> {
-    return this.http.post(this.apiUrl, bookingData);
+  getUserBookings(): Observable<Booking[]> {
+    return this.http
+      .get<{ status: string; bookings: Booking[] }>(this.API_URL)
+      .pipe(map((response) => response.bookings));
+  }
+
+  getOwnerBookings(): Observable<Booking[]> {
+    return this.http
+      .get<{ status: string; bookings: Booking[] }>(`${this.API_URL}/owner`)
+      .pipe(map((response) => response.bookings));
+  }
+
+  updateBookingStatus(
+    bookingId: string,
+    status: 'approved' | 'rejected'
+  ): Observable<Booking> {
+    return this.http
+      .put<{ status: string; booking: Booking }>(
+        `${this.API_URL}/${bookingId}`,
+        { status }
+      )
+      .pipe(map((response) => response.booking));
   }
 }
