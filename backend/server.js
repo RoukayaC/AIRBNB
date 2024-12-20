@@ -3,10 +3,13 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const config = require("config");
 
-const users = require("./routes/api/users");
+const usersRouter = require("./routes/api/users");
+const authRouter = require("./routes/api/auth");
 const properties = require("./routes/api/property");
 const bookings = require("./routes/api/booking");
-
+const ownersRouter = require("./routes/api/owners");
+const auth = require("./middleware/auth");
+const isOwner = require("./middleware/is-owner");
 const app = express();
 
 app.use(express.json());
@@ -24,9 +27,11 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-app.use("/api/user", users);
-app.use("/api/property", properties);
-app.use("/api/booking", bookings);
+app.use("/api/auth", authRouter);
+app.use("/api/users", auth, usersRouter);
+app.use("/api/properties", properties);
+app.use("/api/bookings", bookings);
+app.use("/api/owners", auth, isOwner, ownersRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

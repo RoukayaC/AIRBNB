@@ -8,7 +8,7 @@
 
       <!-- Navigation Links -->
       <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-        <ng-container *ngIf="isPropertyOwner">
+        <ng-container *ngIf="isOwner">
           <a
             routerLink="/owner/dashboard"
             routerLinkActive="text-red-500 border-b-2 border-red-500"
@@ -32,7 +32,7 @@
           </a>
         </ng-container>
 
-        <ng-container *ngIf="!isPropertyOwner">
+        <ng-container *ngIf="!isOwner">
           <a
             routerLink="/user/search"
             routerLinkActive="text-red-500 border-b-2 border-red-500"

@@ -15,7 +15,6 @@ export interface Property {
   imageUrl?: string;
 }
 
-// Define a separate interface for property creation/update data
 export interface PropertyData {
   title: string | undefined;
   price: number | undefined;
@@ -27,24 +26,22 @@ export interface PropertyData {
   providedIn: 'root',
 })
 export class PropertyService {
-  private readonly API_URL = 'http://localhost:3000/api/property';
+  private readonly API_URL = 'http://localhost:3000/api/properties';
 
   constructor(private http: HttpClient) {}
 
   getProperties(): Observable<Property[]> {
     return this.http
-      .get<{ status: string; properties: Property[] }>(this.API_URL)
+      .get<{ status: string; properties: Property[] }>(this.API_URL+ '/search')
       .pipe(map((response) => response.properties));
   }
 
-  // Now accepts a PropertyData object instead of FormData
   createProperty(propertyData: PropertyData): Observable<Property> {
     return this.http
       .post<{ status: string; property: Property }>(this.API_URL, propertyData)
       .pipe(map((response) => response.property));
   }
 
-  // Same for updateProperty: accept PropertyData instead of FormData
   updateProperty(id: string, propertyData: PropertyData): Observable<Property> {
     return this.http
       .put<{ status: string; property: Property }>(
@@ -63,7 +60,7 @@ export class PropertyService {
   togglePropertyStatus(id: string): Observable<Property> {
     return this.http
       .put<{ status: string; property: Property }>(
-        `${this.API_URL}/${id}/toggle-status`,
+        `${this.API_URL}/${id}/status`,
         {}
       )
       .pipe(map((response) => response.property));

@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./navbar.component.css'],
 })
 export class NavbarComponent {
-  isPropertyOwner = false; // You can set this based on user role
+  isOwner = false; // You can set this based on user role
   isLoggedIn = false; // You can set this based on authentication status
   isUserMenuOpen = false;
 
@@ -22,8 +22,8 @@ export class NavbarComponent {
     this.isLoggedIn = !!token;
 
     // Check user role - implement your own logic
-    const userRole = localStorage.getItem('userRole');
-    this.isPropertyOwner = userRole === 'owner';
+    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
+    this.isOwner = user.role === 'owner';
   }
 
   toggleUserMenu(): void {
@@ -33,9 +33,9 @@ export class NavbarComponent {
   logout(): void {
     // Implement logout logic here
     localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    localStorage.removeItem('user');
     this.isLoggedIn = false;
-    this.isPropertyOwner = false;
+    this.isOwner = false;
     this.router.navigate(['/login']);
   }
 }

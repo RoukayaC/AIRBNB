@@ -24,7 +24,7 @@ export interface Booking {
   providedIn: 'root',
 })
 export class BookingService {
-  private readonly API_URL = 'http://localhost:3000/api/booking';
+  private readonly API_URL = 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) {}
 
@@ -35,19 +35,19 @@ export class BookingService {
     totalPrice: number;
   }): Observable<Booking> {
     return this.http
-      .post<{ status: string; booking: Booking }>(this.API_URL, bookingData)
+      .post<{ status: string; booking: Booking }>(this.API_URL + '/bookings', bookingData)
       .pipe(map((response) => response.booking));
   }
 
   getUserBookings(): Observable<Booking[]> {
     return this.http
-      .get<{ status: string; bookings: Booking[] }>(this.API_URL)
+      .get<{ status: string; bookings: Booking[] }>(this.API_URL + '/users/bookings')
       .pipe(map((response) => response.bookings));
   }
 
   getOwnerBookings(): Observable<Booking[]> {
     return this.http
-      .get<{ status: string; bookings: Booking[] }>(`${this.API_URL}/owner`)
+      .get<{ status: string; bookings: Booking[] }>(`${this.API_URL}/owners/bookings`)
       .pipe(map((response) => response.bookings));
   }
 
@@ -57,7 +57,7 @@ export class BookingService {
   ): Observable<Booking> {
     return this.http
       .put<{ status: string; booking: Booking }>(
-        `${this.API_URL}/${bookingId}`,
+        `${this.API_URL}/owners/bookings/${bookingId}/status`,
         { status }
       )
       .pipe(map((response) => response.booking));

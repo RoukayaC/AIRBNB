@@ -23,18 +23,9 @@ router.post("/", auth, async (req, res) => {
   }
 });
 
-// Get all properties for the owner
-router.get("/", auth, async (req, res) => {
-  try {
-    const properties = await Property.find({ owner: req.user.id });
-    res.status(200).json({ status: "ok", properties });
-  } catch (err) {
-    console.error("Error fetching properties:", err);
-    res.status(500).json({ status: "error", msg: "Internal server error" });
-  }
-});
 
-router.get("/all", async (req, res) => {
+
+router.get("/search", async (req, res) => {
   try {
     const properties = await Property.find({ status: "active" });
     res.status(200).json({ status: "ok", properties });
