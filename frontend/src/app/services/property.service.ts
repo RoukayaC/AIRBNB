@@ -26,41 +26,73 @@ export interface PropertyData {
   providedIn: 'root',
 })
 export class PropertyService {
-  private readonly API_URL = 'http://localhost:3000/api/properties';
+  uploadImage(file: File) {
+    throw new Error('Method not implemented.');
+  }
+  private readonly API_URL = 'http://localhost:3000/api';
 
   constructor(private http: HttpClient) {}
 
   getProperties(): Observable<Property[]> {
     return this.http
-      .get<{ status: string; properties: Property[] }>(this.API_URL+ '/search')
+      .get<{ status: string; properties: Property[] }>(
+        this.API_URL + '/properties/search'
+      )
       .pipe(map((response) => response.properties));
   }
-
-  createProperty(propertyData: PropertyData): Observable<Property> {
+  getOwnerProperties(): Observable<Property[]> {
     return this.http
-      .post<{ status: string; property: Property }>(this.API_URL, propertyData)
+      .get<{ status: string; properties: Property[] }>(
+        this.API_URL + '/owners/properties'
+      )
+      .pipe(map((response) => response.properties));
+  }
+  createProperty(
+    propertyData: PropertyData,
+    file?: File
+  ): Observable<Property> {
+    const formData = new FormData();
+    Object.entries(propertyData).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    if (file) {
+      formData.append('file', file, file.name);
+    }
+
+    return this.http
+      .post<{ status: string; property: Property }>(
+        this.API_URL + '/properties',
+        formData
+      )
       .pipe(map((response) => response.property));
   }
 
-  updateProperty(id: string, propertyData: PropertyData): Observable<Property> {
+  updateProperty(id: string, propertyData: PropertyData, file?: File): Observable<Property> {
+    const formData = new FormData();
+    Object.entries(propertyData).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+    if (file) {
+      formData.append('file', file, file.name);
+    }
     return this.http
       .put<{ status: string; property: Property }>(
-        `${this.API_URL}/${id}`,
-        propertyData
+        `${this.API_URL}/properties/${id}`,
+        formData
       )
       .pipe(map((response) => response.property));
   }
 
   deleteProperty(id: string): Observable<any> {
     return this.http.delete<{ status: string; msg: string }>(
-      `${this.API_URL}/${id}`
+      `${this.API_URL}/properties/${id}`
     );
   }
 
   togglePropertyStatus(id: string): Observable<Property> {
     return this.http
       .put<{ status: string; property: Property }>(
-        `${this.API_URL}/${id}/status`,
+        `${this.API_URL}/properties/${id}/status`,
         {}
       )
       .pipe(map((response) => response.property));

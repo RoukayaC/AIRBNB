@@ -7,7 +7,7 @@
       </div>
 
       <!-- Navigation Links -->
-      <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+      <div *ngIf="isLogged" class="hidden sm:ml-6 sm:flex sm:space-x-8">
         <ng-container *ngIf="isOwner">
           <a
             routerLink="/owner/dashboard"
@@ -41,7 +41,8 @@
             Search
           </a>
           <a
-            routerLink="/user/my-bookings"
+
+          routerLink="/user/my-bookings"
             routerLinkActive="text-red-500 border-b-2 border-red-500"
             class="inline-flex items-center px-1 pt-1 text-sm font-medium"
           >
@@ -52,7 +53,7 @@
 
       <!-- User Menu -->
       <div class="flex items-center">
-        <div *ngIf="!isLoggedIn" class="flex space-x-4">
+        <div *ngIf="!isLogged" class="flex space-x-4">
           <a
             routerLink="/login"
             class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -67,7 +68,7 @@
           </a>
         </div>
 
-        <div *ngIf="isLoggedIn" class="relative ml-3">
+        <div *ngIf="isLogged" class="relative ml-3">
           <button
             (click)="toggleUserMenu()"
             class="flex items-center text-sm rounded-full focus:outline-none"

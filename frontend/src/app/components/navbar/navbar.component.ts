@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { Subject, Observable } from 'rxjs';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -7,35 +9,24 @@ import { Router } from '@angular/router';
   styleUrls: ['./navbar.component.css'],
 })
 export class NavbarComponent {
-  isOwner = false; // You can set this based on user role
-  isLoggedIn = false; // You can set this based on authentication status
   isUserMenuOpen = false;
-
-  constructor(private router: Router) {
-    this.checkAuthStatus();
-  }
-
-  private checkAuthStatus(): void {
-    // Implement your authentication check logic here
-    // For example, check if there's a valid token in localStorage
-    const token = localStorage.getItem('token');
-    this.isLoggedIn = !!token;
-
-    // Check user role - implement your own logic
-    const user = JSON.parse(localStorage.getItem('user') ?? '{}');
-    this.isOwner = user.role === 'owner';
+  isLogged: boolean = false;
+  isOwner: boolean = false;
+  constructor(private router: Router, public authService: AuthService) {
+    authService.checkAuthStatus();
+    this.authService.loggedInStatus$.subscribe((status) => {
+      this.isLogged = status;
+    });
+    this.authService.isOwnerStatus$.subscribe((status) => {
+      this.isOwner = status;
+    });
   }
 
   toggleUserMenu(): void {
     this.isUserMenuOpen = !this.isUserMenuOpen;
   }
-
   logout(): void {
-    // Implement logout logic here
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    this.isLoggedIn = false;
-    this.isOwner = false;
+    this.authService.logout();
     this.router.navigate(['/login']);
   }
 }

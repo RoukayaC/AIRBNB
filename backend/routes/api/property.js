@@ -2,17 +2,20 @@ const express = require("express");
 const router = express.Router();
 const Property = require("../../models/property");
 const auth = require("../../middleware/auth");
-
+const isOwner = require("../../middleware/is-owner");
+const multer = require("../../lib/multer");
 // Create a new property
-router.post("/", auth, async (req, res) => {
+router.post("/", auth, isOwner, multer.single("file"), async (req, res) => {
   try {
-    const { title, price, location, imageUrl } = req.body;
+    const { title, price, location } = req.body;
+    let file = req.file ?? null;
+
     const property = new Property({
       owner: req.user.id,
       title,
       price,
       location,
-      imageUrl,
+      imageUrl: file ? file.filename : "",
     });
 
     await property.save();
@@ -22,8 +25,6 @@ router.post("/", auth, async (req, res) => {
     res.status(500).json({ status: "error", msg: "Internal server error" });
   }
 });
-
-
 
 router.get("/search", async (req, res) => {
   try {
@@ -36,17 +37,21 @@ router.get("/search", async (req, res) => {
 });
 
 // Update a property
-router.put("/:id", auth, async (req, res) => {
+router.put("/:id", auth, isOwner, multer.single("file"),  async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
 
     if (!property || property.owner.toString() !== req.user.id) {
       return res
-        .status(404)
-        .json({ status: "error", msg: "Property not found" });
+        .status(403)
+        .json({ status: "error", msg: "you can access this property" });
     }
+    let file = req.file ?? null;
 
-    Object.assign(property, req.body);
+    Object.assign(property, {
+      ...req.body,
+      ...(file && { imageUrl: req.file.filename }),
+    });
     await property.save();
 
     res.status(200).json({ status: "ok", property });
@@ -76,7 +81,7 @@ router.delete("/:id", auth, async (req, res) => {
 });
 
 // Toggle property status endpoint
-router.put("/:id/toggle-status", auth, async (req, res) => {
+router.put("/:id/status", auth,  isOwner, async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
 

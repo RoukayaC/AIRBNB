@@ -4,7 +4,6 @@ import {
   PropertyService,
   PropertyData,
 } from '../../../services/property.service';
-
 @Component({
   selector: 'app-property-management',
   templateUrl: './property-management.component.html',
@@ -13,6 +12,7 @@ import {
 export class PropertyManagementComponent implements OnInit {
   properties: Property[] = [];
   showModal: boolean = false;
+  file: File | undefined;
   editMode: boolean = false;
   selectedProperty: Property | null = null;
 
@@ -26,6 +26,8 @@ export class PropertyManagementComponent implements OnInit {
     imageUrl: '',
   };
 
+  errorMessage: string = ''; // For form validation messages
+
   constructor(private propertyService: PropertyService) {}
 
   ngOnInit() {
@@ -33,7 +35,7 @@ export class PropertyManagementComponent implements OnInit {
   }
 
   fetchPropertiesFromServer() {
-    this.propertyService.getProperties().subscribe(
+    this.propertyService.getOwnerProperties().subscribe(
       (properties: Property[]) => {
         this.properties = properties;
       },
@@ -43,19 +45,12 @@ export class PropertyManagementComponent implements OnInit {
     );
   }
 
-  // add/edit
   openModal(property?: Property) {
+    console.log('Property:', property);
     this.editMode = !!property;
     this.selectedProperty = property || null;
     this.newProperty = property
-      ? {
-          _id: property._id,
-          title: property.title,
-          price: property.price,
-          location: property.location,
-          status: property.status,
-          imageUrl: property.imageUrl,
-        }
+      ? { ...property }
       : {
           title: '',
           price: 0,
@@ -63,57 +58,58 @@ export class PropertyManagementComponent implements OnInit {
           status: 'active',
           imageUrl: '',
         };
+    this.errorMessage = '';
     this.showModal = true;
   }
 
-  // Close modal
   closeModal() {
     this.showModal = false;
     this.newProperty = {};
     this.selectedProperty = null;
     this.editMode = false;
+    this.errorMessage = '';
   }
 
-  // Handle file input for image upload
+  // Handle file input
   handleFileInput(event: Event) {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
 
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.newProperty.imageUrl = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
+      this.file = file;
     }
   }
-
-  // Save new or edited property
   saveProperty() {
-    const newPropertyData: PropertyData = {
+    // Validate form data
+    if (
+      !this.newProperty.title ||
+      !this.newProperty.location ||
+      !this.newProperty.price
+    ) {
+      this.errorMessage = 'All fields except image are required.';
+      return;
+    }
+
+    const propertyData: PropertyData = {
       title: this.newProperty.title,
       price: this.newProperty.price,
       location: this.newProperty.location,
       imageUrl: this.newProperty.imageUrl,
     };
 
-    if (this.editMode && this.selectedProperty && this.selectedProperty._id) {
-      // Update property
+    if (this.editMode && this.selectedProperty?._id) {
       this.propertyService
-        .updateProperty(this.selectedProperty._id, newPropertyData)
+        .updateProperty(this.selectedProperty._id, propertyData, this.file)
         .subscribe(
           (updatedProperty) => {
-            console.log('Property updated:', updatedProperty);
             this.closeModal();
             this.fetchPropertiesFromServer();
           },
           (error) => console.error('Error updating property:', error)
         );
     } else {
-      // Create property
-      this.propertyService.createProperty(newPropertyData).subscribe(
+      this.propertyService.createProperty(propertyData, this.file).subscribe(
         (response) => {
-          console.log('Property created:', response);
           this.closeModal();
           this.fetchPropertiesFromServer();
         },
@@ -122,10 +118,9 @@ export class PropertyManagementComponent implements OnInit {
     }
   }
 
-  // Toggle property status (active/inactive)
   togglePropertyStatus(property: Property) {
     this.propertyService.togglePropertyStatus(property._id).subscribe(
-      (updatedProperty: Property) => {
+      () => {
         this.fetchPropertiesFromServer();
       },
       (error: any) => {
@@ -134,14 +129,13 @@ export class PropertyManagementComponent implements OnInit {
     );
   }
 
-  // Delete property
   deleteProperty(property: Property) {
     const confirmed = confirm(
       `Are you sure you want to delete the property "${property.title}"?`
     );
     if (confirmed) {
       this.propertyService.deleteProperty(property._id).subscribe(
-        (resp: any) => {
+        () => {
           this.fetchPropertiesFromServer();
         },
         (error: any) => {

@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const config = require("config");
-
+const path = require("path");
 const usersRouter = require("./routes/api/users");
 const authRouter = require("./routes/api/auth");
 const properties = require("./routes/api/property");
@@ -11,7 +11,6 @@ const ownersRouter = require("./routes/api/owners");
 const auth = require("./middleware/auth");
 const isOwner = require("./middleware/is-owner");
 const app = express();
-
 app.use(express.json());
 app.use(
   cors({
@@ -19,6 +18,7 @@ app.use(
     credentials: true,
   })
 );
+app.use("/uploads",express.static(path.join(__dirname, 'uploads')));
 
 const PORT = process.env.PORT || 3000;
 

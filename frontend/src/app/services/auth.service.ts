@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, tap } from 'rxjs';
 
 export interface User {
   _id: string;
@@ -24,18 +24,28 @@ export class AuthService {
   private readonly API_URL = 'http://localhost:3000/api/auth';
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
-
   constructor(private http: HttpClient, private router: Router) {
     this.checkAuthStatus();
   }
+  private loggedInStatusChange = new BehaviorSubject<boolean>(false);
 
-  private checkAuthStatus() {
+  get loggedInStatus$(): Observable<boolean> {
+    return this.loggedInStatusChange.asObservable();
+  }
+  private isOwnerStatusChange = new BehaviorSubject<boolean>(false);
+
+  get isOwnerStatus$(): Observable<boolean> {
+    return this.isOwnerStatusChange.asObservable();
+  }
+  checkAuthStatus() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     if (token && user) {
       try {
-        const userData = JSON.parse(user);
+        const userData = JSON.parse(localStorage.getItem('user') ?? '{}');
         this.currentUserSubject.next(userData);
+        this.loggedInStatusChange.next(true);
+        this.isOwnerStatusChange.next(userData.role === 'owner');
       } catch (error) {
         this.logout();
       }
@@ -52,6 +62,7 @@ export class AuthService {
         tap((response) => {
           if (response.token && response.user) {
             this.setSession(response);
+            this.checkAuthStatus();
           }
         })
       );
@@ -83,8 +94,10 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    this.loggedInStatusChange.next(false);
+    this.isOwnerStatusChange.next(false);
     this.currentUserSubject.next(null);
-    this.router.navigate(['/login']);
+    console.log('Logged out', this.loggedInStatusChange.value);
   }
 
   getToken(): string | null {
