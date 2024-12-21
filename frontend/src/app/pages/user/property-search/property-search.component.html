@@ -49,8 +49,12 @@
     *ngFor="let property of filteredProperties"
     class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
   >
+    <!-- Replace the existing img tag with this -->
     <img
-      [src]="property.imageUrl || '/assets/placeholder.jpg'"
+      [src]="
+        'http://localhost:3000/uploads/' + property.imageUrl ||
+        '/assets/placeholder.jpg'
+      "
       [alt]="property.title"
       class="w-full h-48 object-cover"
     />
@@ -74,11 +78,16 @@
 
 <!-- Loading State -->
 <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-  <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  <div
+    class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+  ></div>
 </div>
 
 <!-- Error Message -->
-<div *ngIf="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4">
+<div
+  *ngIf="errorMessage"
+  class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mt-4"
+>
   {{ errorMessage }}
 </div>
 
@@ -90,9 +99,15 @@
   <div class="bg-white rounded-lg p-6 w-full max-w-md">
     <h3 class="text-xl font-semibold mb-4">Book Property</h3>
 
-    <form [formGroup]="bookingForm" (ngSubmit)="submitBooking()" class="space-y-4">
+    <form
+      [formGroup]="bookingForm"
+      (ngSubmit)="submitBooking()"
+      class="space-y-4"
+    >
       <div>
-        <label class="block text-sm font-medium text-gray-700">Check-in Date</label>
+        <label class="block text-sm font-medium text-gray-700"
+          >Check-in Date</label
+        >
         <input
           type="date"
           formControlName="checkIn"
@@ -101,7 +116,9 @@
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-gray-700">Check-out Date</label>
+        <label class="block text-sm font-medium text-gray-700"
+          >Check-out Date</label
+        >
         <input
           type="date"
           formControlName="checkOut"
